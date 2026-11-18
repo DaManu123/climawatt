@@ -1,4 +1,4 @@
-# ClimaWatt ⚡
+# ClimaWatt
 
 Aplicación web para medir, entender y reducir el consumo eléctrico del aire acondicionado en los hogares de Hermosillo. Proyecto final de Sustentabilidad.
 
@@ -8,12 +8,12 @@ Aplicación web para medir, entender y reducir el consumo eléctrico del aire ac
 
 | Vista | Qué hace |
 |---|---|
-| **Inicio** | Recibo estimado, consumo en kWh, CO₂ del mes, barra del límite DAC, promedio real de tus recibos y los aparatos que más gastan |
-| **Aparatos** | Agregar, editar y eliminar aparatos con tipos precargados (minisplit, inverter, refri, etc.) y vista previa del consumo |
-| **Recibo** | Recibo estimado con los escalones de la Tarifa 1F (verano y resto del año) + historial de recibos reales de CFE con gráfica y promedio anual contra el límite DAC |
-| **Ahorro** | Simulador (temperatura, horas, inverter, modo espera) y plan de ahorro con casillas para marcar avances |
-| **Huella** | kg de CO₂ del mes, equivalencias (árboles, km en auto), CO₂ por aparato y CO₂ evitado con los cambios |
-| **Ajustes ⚙️** | Editar precios de la tarifa, factor de CO₂ y límite DAC; exportar/importar respaldo; cargar ejemplo o borrar todo |
+| **Inicio** | Recibo estimado, consumo en kWh, CO₂ del mes, promedio anual estimado contra el límite DAC, promedio real de tus recibos y los aparatos que más gastan |
+| **Aparatos** | Agregar, editar y eliminar aparatos con tipos precargados (minisplit, inverter, refri, etc.). Los equipos de clima tienen horas distintas en verano y el resto del año. Vista previa del consumo y de cuánto sube el recibo |
+| **Recibo** | Recibo estimado con los escalones de la Tarifa 1F (temporada automática según el mes, o verano / resto del año a elección) + historial de recibos reales de CFE con gráfica y promedio de los últimos 12 meses contra el límite DAC |
+| **Ahorro** | Simulador (temperatura, horas, inverter, modo espera) que muestra el ahorro o el gasto extra, y plan de ahorro con casillas para marcar avances |
+| **Huella** | kg de CO₂ del mes y estimado del año, equivalencias (árboles, km en auto), CO₂ por aparato y CO₂ evitado con los cambios |
+| **Ajustes** | Editar precios y escalones de la tarifa, factor de CO₂ y límite DAC; exportar/importar respaldo; cargar ejemplo o borrar todo |
 
 Además es **PWA**: se puede *instalar* en el celular como si fuera app y funciona sin internet.
 
@@ -28,8 +28,9 @@ climawatt/
 ├── img/                    ← iconos
 └── js/
     ├── datos.js            ← tarifas, catálogo de aparatos y datos de ejemplo
+    ├── iconos.js           ← iconos SVG de la interfaz
     ├── calculos.js         ← fórmulas (kWh, recibo, CO₂, ahorro)
-    ├── almacenamiento.js   ← guardar/cargar en localStorage, respaldos
+    ├── almacenamiento.js   ← guardar/cargar en localStorage, respaldos y validación de datos
     └── app.js              ← interfaz y eventos
 ```
 
@@ -37,8 +38,9 @@ No usa frameworks ni necesita compilar nada: es HTML, CSS y JavaScript puro.
 
 ## Fórmulas principales
 
-- **Consumo:** `kWh/mes = (watts ÷ 1000) × horas al día × días al mes`
-- **Recibo:** el consumo se reparte en los escalones de la Tarifa 1F y se le suma 16% de IVA
+- **Consumo:** `kWh/mes = (watts ÷ 1000) × horas al día × días al mes` (en equipos de clima se usan las horas de la temporada)
+- **Recibo:** el consumo se reparte en los escalones de la Tarifa 1F y se le suma 16% de IVA (no incluye cargos fijos ni DAP)
+- **Límite DAC:** `promedio anual = (kWh verano × 6 + kWh resto del año × 6) ÷ 12`, comparado contra 2,500 kWh/mes
 - **CO₂:** `kg CO₂ = kWh × 0.444` (factor del Sistema Eléctrico Nacional 2024, SEMARNAT)
 - **Simulador:** ~6% menos por cada °C arriba de 22 °C; inverter ~35% menos que convencional (estimaciones)
 
@@ -116,10 +118,12 @@ Ya publicada (con `https://`):
 
 ## Respaldo de datos
 
-Los datos se guardan en el navegador de cada dispositivo. Para pasarlos a otro: **Ajustes → Exportar respaldo** (descarga un `.json`) y en el otro dispositivo **Ajustes → Importar**.
+Los datos se guardan en el navegador de cada dispositivo. Para pasarlos a otro: **Ajustes → Exportar** (descarga un `.json`) y en el otro dispositivo **Ajustes → Importar**.
+
+Todo lo que se importa o se carga se valida: los datos incompletos o inválidos se descartan o se corrigen, y si un archivo no se puede leer la app conserva los datos que ya tenías.
 
 ## Fuentes
 
-- CFE: límite de alto consumo para Tarifa 1F (2,500 kWh/mes) y escalones de la tarifa.
+- CFE: límite de alto consumo para Tarifa 1F (2,500 kWh/mes) y escalones de la tarifa. Los precios son de referencia; conviene revisarlos contra la tarifa vigente y actualizarlos en Ajustes.
 - SEMARNAT: Factor de Emisión del Sistema Eléctrico Nacional 2024 (0.444 kg CO₂e/kWh).
 - Los porcentajes de ahorro del simulador y las equivalencias (árboles, km) son estimaciones generales.

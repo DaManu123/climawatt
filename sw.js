@@ -1,9 +1,9 @@
 /* ClimaWatt - service worker
    Guarda los archivos de la app en caché para que funcione sin internet. */
-const CACHE = 'climawatt-v1';
+const CACHE = 'climawatt-v2';
 const ARCHIVOS = [
   './', './index.html', './css/styles.css',
-  './js/datos.js', './js/calculos.js', './js/almacenamiento.js', './js/app.js',
+  './js/datos.js', './js/iconos.js', './js/calculos.js', './js/almacenamiento.js', './js/app.js',
   './manifest.webmanifest', './img/icon-192.png', './img/icon-512.png'
 ];
 
@@ -17,12 +17,25 @@ self.addEventListener('activate', e => {
     .then(() => self.clients.claim()));
 });
 
-// Primero intenta la red (para tener siempre la última versión) y si no hay internet usa la caché
+// Primero intenta la red (para tener siempre la última versión) y si no hay internet usa la caché.
+// Solo se guardan respuestas correctas del mismo sitio.
 self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET') return;
+  const req = e.request;
+  if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
   e.respondWith(
-    fetch(e.request)
-      .then(r => { const copia = r.clone(); caches.open(CACHE).then(c => c.put(e.request, copia)); return r; })
-      .catch(() => caches.match(e.request).then(r => r || caches.match('./index.html')))
+    fetch(req)
+      .then(r => {
+        if (r.ok && r.type === 'basic') {
+          const copia = r.clone();
+          caches.open(CACHE).then(c => c.put(req, copia)).catch(() => {});
+        }
+        return r;
+      })
+      .catch(() => caches.match(req, { ignoreSearch: true }).then(r => {
+        if (r) return r;
+        // Sin conexión: solo las páginas se responden con la app; el resto falla normalmente
+        if (req.mode === 'navigate') return caches.match('./index.html');
+        return Response.error();
+      }))
   );
 });

@@ -6,22 +6,39 @@
 window.CW = window.CW || {};
 
 CW.calc = {
-  // kWh al mes de un aparato
-  kwhAparato(a) {
-    return (a.w / 1000) * a.h * a.d;
-  },
-
-  kwhTotal(lista) {
-    return lista.reduce((s, a) => s + CW.calc.kwhAparato(a), 0);
-  },
-
   esClima(a) {
     return !!(CW.TIPOS[a.t] && CW.TIPOS[a.t].clima);
+  },
+
+  esEstacional(a) {
+    return !!(CW.TIPOS[a.t] && CW.TIPOS[a.t].estacional);
+  },
+
+  // Horas al día según la temporada. Los equipos de clima tienen
+  // horas distintas en verano (h) y el resto del año (hi).
+  horasDia(a, temporada) {
+    if (temporada === 'invierno' && CW.calc.esEstacional(a) && a.hi != null) return a.hi;
+    return a.h;
+  },
+
+  // kWh al mes de un aparato
+  kwhAparato(a, temporada) {
+    return (a.w / 1000) * CW.calc.horasDia(a, temporada) * a.d;
+  },
+
+  kwhTotal(lista, temporada) {
+    return lista.reduce((s, a) => s + CW.calc.kwhAparato(a, temporada), 0);
   },
 
   // ¿El mes (1-12) es temporada de verano?
   esVerano(mes, config) {
     return config.mesesVerano.includes(mes);
+  },
+
+  // Promedio mensual estimado de todo el año (lo que CFE compara contra el límite DAC)
+  promedioAnual(lista, config) {
+    const nV = config.mesesVerano.length;
+    return (CW.calc.kwhTotal(lista, 'verano') * nV + CW.calc.kwhTotal(lista, 'invierno') * (12 - nV)) / 12;
   },
 
   // Calcula el recibo mensual repartiendo el consumo en escalones
@@ -31,7 +48,7 @@ CW.calc = {
     const filas = escalones.map(e => {
       const tope = e.hasta == null ? Infinity : e.hasta;
       const q = Math.max(0, Math.min(kwh, tope) - previo);
-      previo = tope;
+      previo = Math.max(previo, tope);
       const imp = q * e.p;
       subtotal += imp;
       return { n: e.n, q, p: e.p, imp };
@@ -52,13 +69,15 @@ CW.calc = {
     return { pct, clase: 'bad', txt: 'Riesgo DAC' };
   },
 
-  // Aplica los cambios del simulador a una copia de los aparatos
+  // Aplica los cambios del simulador a una copia de los aparatos.
+  // Temperaturas debajo de 22 °C aumentan el consumo (el resultado puede ser negativo).
   escenarioAhorro(aparatos, sim) {
     const f = Math.max(0.5, 1 - CW.SIM.ahorroPorGrado * (sim.temp - CW.SIM.tempBase));
     return aparatos.map(a => {
       const n = { ...a };
       if (CW.calc.esClima(a)) {
         n.h = Math.max(0, a.h - sim.horas);
+        if (a.hi != null) n.hi = Math.max(0, a.hi - sim.horas);
         n.w = a.w * f;
         if (sim.inverter && a.t === 'clima') n.w = n.w * (1 - CW.SIM.ahorroInverter);
       } else if (sim.espera && CW.TIPOS[a.t] && CW.TIPOS[a.t].espera) {
@@ -68,11 +87,19 @@ CW.calc = {
     });
   },
 
-  // Resumen de recibos reales: promedio mensual de los últimos 12 meses (6 bimestres)
+  // "2026-08" -> número de mes consecutivo (para comparar periodos)
+  mesIndice(periodo) {
+    const [y, m] = periodo.split('-').map(Number);
+    return y * 12 + (m - 1);
+  },
+
+  // Resumen de recibos reales: promedio mensual de los 12 meses anteriores
+  // al último recibo registrado (hasta 6 bimestres).
   resumenRecibos(recibos, config) {
     if (!recibos.length) return null;
     const ord = [...recibos].sort((a, b) => a.periodo.localeCompare(b.periodo));
-    const ult = ord.slice(-6);
+    const fin = CW.calc.mesIndice(ord[ord.length - 1].periodo);
+    const ult = ord.filter(r => CW.calc.mesIndice(r.periodo) > fin - 12).slice(-6);
     const kwhTot = ult.reduce((s, r) => s + r.kwh, 0);
     const meses = ult.length * 2;
     const promMensual = kwhTot / meses;

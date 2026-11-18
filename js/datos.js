@@ -5,7 +5,7 @@
    ========================================================= */
 window.CW = window.CW || {};
 
-CW.VERSION = '1.0.0';
+CW.VERSION = '1.1.0';
 
 // Configuración por defecto (el usuario la puede cambiar en Ajustes)
 CW.CONFIG_DEFAULT = {
@@ -23,7 +23,7 @@ CW.CONFIG_DEFAULT = {
     ],
     invierno: [
       { n: 'Básico',     hasta: 75,   p: 1.125 },
-      { n: 'Intermedio', hasta: 175,  p: 1.369 },
+      { n: 'Intermedio', hasta: 200,  p: 1.369 },
       { n: 'Excedente',  hasta: null, p: 4.004 }
     ]
   }
@@ -39,30 +39,34 @@ CW.SIM = {
   kgCO2Km: 0.17          // kg de CO2 por km en auto promedio (estimación)
 };
 
-// Catálogo de tipos de aparato
+// Catálogo de tipos de aparato (ic = nombre del icono en iconos.js).
+// clima: true = minisplit (lo ajusta el simulador).
+// estacional: true = se usa para enfriar, con horas distintas en verano y el resto del año.
+// espera: true = tiene consumo en modo espera.
 CW.TIPOS = {
-  clima:  { ic: '❄️', nombre: 'Minisplit convencional', color: '#2b7fd1', clima: true },
-  climai: { ic: '❄️', nombre: 'Minisplit inverter',     color: '#5aa2e6', clima: true },
-  cooler: { ic: '💨', nombre: 'Cooler / enfriador',     color: '#7cc3e8' },
-  refri:  { ic: '🧊', nombre: 'Refrigerador',           color: '#1f9d6b' },
-  tv:     { ic: '📺', nombre: 'Televisión',             color: '#f2a516', espera: true },
-  pc:     { ic: '💻', nombre: 'Computadora / consola',  color: '#8e6bd6', espera: true },
-  lav:    { ic: '🧺', nombre: 'Lavadora / secadora',    color: '#e0739a' },
-  luz:    { ic: '💡', nombre: 'Iluminación',            color: '#f5c84b' },
-  bomba:  { ic: '🚰', nombre: 'Bomba de agua',          color: '#3fb3a6' },
-  cocina: { ic: '🍳', nombre: 'Cocina (micro, horno)',  color: '#e07b39' },
-  otro:   { ic: '🔌', nombre: 'Otro',                   color: '#9aa8a3', espera: true }
+  clima:  { ic: 'copo',     nombre: 'Minisplit convencional', color: '#2b7fd1', clima: true, estacional: true },
+  climai: { ic: 'copo',     nombre: 'Minisplit inverter',     color: '#5aa2e6', clima: true, estacional: true },
+  cooler: { ic: 'viento',   nombre: 'Cooler / enfriador',     color: '#4fa9d6', estacional: true },
+  refri:  { ic: 'refri',    nombre: 'Refrigerador',           color: '#1f9d6b' },
+  tv:     { ic: 'tv',       nombre: 'Televisión',             color: '#e39a0b', espera: true },
+  pc:     { ic: 'pc',       nombre: 'Computadora / consola',  color: '#8e6bd6', espera: true },
+  lav:    { ic: 'lavadora', nombre: 'Lavadora / secadora',    color: '#d9628c' },
+  luz:    { ic: 'foco',     nombre: 'Iluminación',            color: '#d9a514' },
+  bomba:  { ic: 'gota',     nombre: 'Bomba de agua',          color: '#2fa396' },
+  cocina: { ic: 'micro',    nombre: 'Cocina (micro, horno)',  color: '#e07b39' },
+  otro:   { ic: 'enchufe',  nombre: 'Otro',                   color: '#7f8f8a', espera: true }
 };
 
-// Aparatos precargados para el formulario (potencias típicas aproximadas)
+// Aparatos precargados para el formulario (potencias típicas aproximadas).
+// h = horas al día en verano; hi = horas al día el resto del año (solo equipos de clima)
 CW.PRESETS = [
-  { t: 'clima',  n: 'Minisplit 1 ton convencional',   w: 1300, h: 8 },
-  { t: 'clima',  n: 'Minisplit 1.5 ton convencional', w: 1800, h: 8 },
-  { t: 'clima',  n: 'Minisplit 2 ton convencional',   w: 2200, h: 8 },
-  { t: 'climai', n: 'Minisplit 1 ton inverter',       w: 900,  h: 8 },
-  { t: 'climai', n: 'Minisplit 1.5 ton inverter',     w: 1200, h: 8 },
-  { t: 'climai', n: 'Minisplit 2 ton inverter',       w: 1500, h: 8 },
-  { t: 'cooler', n: 'Cooler (enfriador evaporativo)', w: 250,  h: 8 },
+  { t: 'clima',  n: 'Minisplit 1 ton convencional',   w: 1300, h: 8, hi: 0 },
+  { t: 'clima',  n: 'Minisplit 1.5 ton convencional', w: 1800, h: 8, hi: 0 },
+  { t: 'clima',  n: 'Minisplit 2 ton convencional',   w: 2200, h: 8, hi: 0 },
+  { t: 'climai', n: 'Minisplit 1 ton inverter',       w: 900,  h: 8, hi: 0 },
+  { t: 'climai', n: 'Minisplit 1.5 ton inverter',     w: 1200, h: 8, hi: 0 },
+  { t: 'climai', n: 'Minisplit 2 ton inverter',       w: 1500, h: 8, hi: 0 },
+  { t: 'cooler', n: 'Cooler (enfriador evaporativo)', w: 250,  h: 8, hi: 0 },
   { t: 'refri',  n: 'Refrigerador',                   w: 200,  h: 8 },
   { t: 'tv',     n: 'Televisión',                     w: 120,  h: 5 },
   { t: 'pc',     n: 'Computadora de escritorio',      w: 350,  h: 5 },
@@ -78,8 +82,8 @@ CW.PRESETS = [
 
 // Casa de ejemplo (la misma que se usa en el documento)
 CW.EJEMPLO_APARATOS = [
-  { t: 'clima',  n: 'Clima de la sala (2 ton)',         w: 2200, h: 10,  d: 30 },
-  { t: 'climai', n: 'Clima recámara (1 ton inverter)',  w: 900,  h: 9,   d: 30 },
+  { t: 'clima',  n: 'Clima de la sala (2 ton)',         w: 2200, h: 10,  hi: 1, d: 30 },
+  { t: 'climai', n: 'Clima recámara (1 ton inverter)',  w: 900,  h: 9,   hi: 1, d: 30 },
   { t: 'refri',  n: 'Refrigerador',                     w: 200,  h: 8,   d: 30 },
   { t: 'pc',     n: 'Computadora',                      w: 350,  h: 5,   d: 30 },
   { t: 'tv',     n: 'Televisión',                       w: 120,  h: 6,   d: 30 },
