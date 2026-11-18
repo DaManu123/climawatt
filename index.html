@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#137a52">
+<meta name="description" content="ClimaWatt: mide y reduce el consumo eléctrico del aire acondicionado en tu casa.">
+<title>ClimaWatt</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="img/icon-192.png">
+<link rel="apple-touch-icon" href="img/icon-192.png">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="top">
+      <div class="logo">
+        <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="15" fill="rgba(255,255,255,.2)"/><path d="M17.5 5 9 18h6l-1.5 9L23 13.5h-6.2L17.5 5z" fill="#fff"/></svg>
+        ClimaWatt
+      </div>
+      <div class="hdr-actions">
+        <button class="pill" id="seasonPill" data-action="toggle-season">☀️ Verano</button>
+        <button class="icon-btn" title="Ajustes" data-go="ajustes">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+        </button>
+      </div>
+    </div>
+    <h1 id="hTitle">Hola 👋</h1>
+    <p id="hSub">Así va tu consumo de luz este mes</p>
+  </header>
+
+  <main>
+    <!-- ================= VISTA 1: INICIO ================= -->
+    <section class="view active" id="v-inicio">
+      <div class="card">
+        <div class="muted">Recibo estimado del mes</div>
+        <div class="row" style="align-items:flex-end;margin-top:4px">
+          <div class="big" id="i-cost">$0</div>
+          <span class="tag ok" id="i-tag">Normal</span>
+        </div>
+        <div class="muted" style="margin-top:4px" id="i-bim"></div>
+      </div>
+      <div class="grid2">
+        <div class="stat"><div class="l">⚡ Consumo mensual</div><div class="v" id="i-kwh">0 kWh</div></div>
+        <div class="stat"><div class="l">🌎 CO₂ del mes</div><div class="v" id="i-co2">0 kg</div></div>
+      </div>
+      <div class="card">
+        <div class="row"><h3 style="margin:0">Límite de alto consumo (DAC)</h3><span class="muted" id="i-pct">0%</span></div>
+        <div class="bar"><span id="i-bar" style="width:0%"></span></div>
+        <div class="muted" id="i-dacmsg"></div>
+      </div>
+      <div id="i-real"></div>
+      <div id="i-alert"></div>
+      <div class="card">
+        <h3>¿Qué es lo que más gasta?</h3>
+        <div id="i-top"></div>
+      </div>
+    </section>
+
+    <!-- ================= VISTA 2: APARATOS ================= -->
+    <section class="view" id="v-aparatos">
+      <div class="card">
+        <div class="row"><h3 style="margin:0">Mis aparatos</h3><span class="muted" id="a-count"></span></div>
+        <p class="muted" style="margin-top:4px">Toca un aparato para editarlo.</p>
+        <div id="a-list" style="margin-top:4px"></div>
+      </div>
+      <div class="card" id="a-form-card">
+        <h3 id="a-form-title">Agregar aparato</h3>
+        <form id="a-form" autocomplete="off">
+          <input type="hidden" id="a-id">
+          <div class="f"><label for="a-preset">Tipo de aparato</label><select id="a-preset"></select></div>
+          <div class="f"><label for="a-name">Nombre (ej. Clima de la sala)</label><input id="a-name" maxlength="40" required></div>
+          <div class="grid2" style="margin-bottom:10px">
+            <div><label for="a-w">Potencia (watts)</label><input id="a-w" type="number" min="1" max="10000" required></div>
+            <div><label for="a-h">Horas de uso al día</label><input id="a-h" type="number" min="0" max="24" step="0.1" required></div>
+          </div>
+          <div class="f"><label for="a-d">Días de uso al mes</label><input id="a-d" type="number" min="1" max="31" value="30" required></div>
+          <div class="muted" id="a-preview" style="margin-bottom:10px"></div>
+          <div class="btn-row">
+            <button class="btn sec" type="button" id="a-cancel" style="display:none">Cancelar</button>
+            <button class="btn" type="submit" id="a-submit">+ Agregar</button>
+          </div>
+        </form>
+        <p class="foot" style="margin-top:10px">¿No sabes los watts? Búscalos en la etiqueta del aparato o en su manual. Los tipos precargados traen un valor típico.</p>
+      </div>
+    </section>
+
+    <!-- ================= VISTA 3: RECIBO ================= -->
+    <section class="view" id="v-recibo">
+      <div class="seg" id="r-tabs">
+        <button class="on" data-rtab="estimado">Recibo estimado</button>
+        <button data-rtab="reales">Mis recibos reales</button>
+      </div>
+
+      <div id="r-estimado">
+        <div class="seg">
+          <button id="s-ver" data-season="verano">☀️ Verano (may–oct)</button>
+          <button id="s-inv" data-season="invierno">❄️ Resto del año</button>
+        </div>
+        <div class="card">
+          <div class="muted">Proyección de tu recibo (Tarifa 1F)</div>
+          <div class="big" style="margin:6px 0" id="r-total">$0</div>
+          <div class="muted" id="r-sub"></div>
+        </div>
+        <div class="card">
+          <h3>Desglose por escalón de tarifa</h3>
+          <table id="r-table"></table>
+        </div>
+        <div class="card">
+          <h3>¿Cuánto cuesta cada aparato?</h3>
+          <div id="r-dev"></div>
+        </div>
+        <p class="foot">Precios de referencia de la Tarifa 1F (CFE). Puedes actualizarlos en Ajustes ⚙️.</p>
+      </div>
+
+      <div id="r-reales" style="display:none">
+        <div id="rr-resumen"></div>
+        <div class="card">
+          <h3>Consumo por bimestre</h3>
+          <div id="rr-chart"></div>
+        </div>
+        <div class="card">
+          <h3>Registrar un recibo</h3>
+          <form id="rr-form" autocomplete="off">
+            <div class="grid2" style="margin-bottom:10px">
+              <div><label for="rr-mes">Bimestre que termina en</label><select id="rr-mes"></select></div>
+              <div><label for="rr-anio">Año</label><select id="rr-anio"></select></div>
+            </div>
+            <div class="grid2" style="margin-bottom:10px">
+              <div><label for="rr-kwh">kWh del bimestre</label><input id="rr-kwh" type="number" min="1" max="30000" required></div>
+              <div><label for="rr-monto">Total pagado ($)</label><input id="rr-monto" type="number" min="0" step="0.01"></div>
+            </div>
+            <button class="btn" type="submit">Guardar recibo</button>
+          </form>
+          <p class="foot" style="margin-top:10px">Los kWh vienen en tu recibo de CFE, en la sección "Consumo".</p>
+        </div>
+        <div class="card">
+          <h3>Historial</h3>
+          <div id="rr-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= VISTA 4: AHORRO ================= -->
+    <section class="view" id="v-ahorro">
+      <div class="save">
+        <div style="font-size:13px;opacity:.9">Con estos cambios ahorrarías al mes</div>
+        <div class="big" id="h-money">$0</div>
+        <div style="font-size:13px;opacity:.95;margin-top:2px" id="h-kwh"></div>
+      </div>
+      <div class="card">
+        <h3>Simulador del clima (minisplit)</h3>
+        <label for="h-temp">Temperatura a la que lo usas: <span class="slider-val" id="h-tval">22 °C</span></label>
+        <input type="range" id="h-temp" min="18" max="27" value="22">
+        <div class="muted" style="margin:2px 0 12px">Recomendado: 24–25 °C. Cada grado más arriba gasta menos energía.</div>
+        <label for="h-hours">Horas menos de uso al día: <span class="slider-val" id="h-hval">0 h</span></label>
+        <input type="range" id="h-hours" min="0" max="4" step="0.5" value="0">
+        <label class="check"><input type="checkbox" id="h-inv"><span>Cambiar climas convencionales por <b>inverter</b></span></label>
+        <label class="check"><input type="checkbox" id="h-vamp"><span>Desconectar aparatos en <b>modo espera</b></span></label>
+      </div>
+      <div class="card">
+        <h3>Mi plan de ahorro</h3>
+        <div class="progress-txt" id="p-txt"></div>
+        <div class="bar" style="margin-top:0"><span id="p-bar" style="background:var(--green)"></span></div>
+        <div id="p-list"></div>
+      </div>
+    </section>
+
+    <!-- ================= VISTA 5: HUELLA ================= -->
+    <section class="view" id="v-huella">
+      <div class="card co2">
+        <div class="muted">Tu huella de carbono por la luz este mes</div>
+        <div class="ring">
+          <svg viewBox="0 0 120 120" width="150" height="150"><circle cx="60" cy="60" r="50" stroke="#e3ece8" stroke-width="12" fill="none"/>
+            <circle id="c-ring" cx="60" cy="60" r="50" stroke="#1f9d6b" stroke-width="12" fill="none" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="314" transform="rotate(-90 60 60)" style="transition:stroke-dashoffset .4s"/></svg>
+          <div class="c"><div class="big" id="c-kg" style="font-size:28px">0</div><div class="muted">kg de CO₂</div></div>
+        </div>
+        <div class="eq">
+          <div>Árboles para absorberlo en un año<b id="c-trees">0</b></div>
+          <div>Km en auto equivalentes<b id="c-km">0</b></div>
+          <div>CO₂ en temporada de calor<b id="c-season">0 t</b></div>
+        </div>
+      </div>
+      <div id="c-real"></div>
+      <div class="card">
+        <h3>CO₂ por aparato</h3>
+        <div id="c-dev"></div>
+      </div>
+      <div class="card">
+        <h3>Si aplicas los cambios de la sección Ahorro</h3>
+        <div class="row" style="font-size:14px"><span>Dejarías de emitir al mes</span><b id="c-saved">0 kg</b></div>
+        <div class="row" style="font-size:14px;margin-top:6px"><span>En la temporada de calor (6 meses)</span><b id="c-saved6">0 kg</b></div>
+        <div class="row" style="font-size:14px;margin-top:6px"><span>Equivale a plantar</span><b id="c-savedtrees">0 árboles</b></div>
+      </div>
+      <p class="foot" id="c-foot"></p>
+    </section>
+
+    <!-- ================= AJUSTES ================= -->
+    <section class="view" id="v-ajustes">
+      <div class="card">
+        <h3>Mi hogar</h3>
+        <label for="s-hogar">Nombre que aparece en el saludo</label>
+        <input id="s-hogar" maxlength="30">
+      </div>
+      <div class="card">
+        <h3>Precios de la Tarifa 1F ($/kWh sin IVA)</h3>
+        <p class="muted" style="margin-bottom:8px">Si CFE cambia sus precios, actualízalos aquí.</p>
+        <div id="s-tarifas"></div>
+        <div class="grid2" style="margin:12px 0 0">
+          <div><label for="s-co2">Factor CO₂ (kg/kWh)</label><input id="s-co2" type="number" step="0.001" min="0"></div>
+          <div><label for="s-dac">Límite DAC (kWh/mes)</label><input id="s-dac" type="number" step="1" min="1"></div>
+        </div>
+        <button class="btn sec" style="margin-top:12px" data-action="reset-tarifas">Restaurar valores de referencia</button>
+      </div>
+      <div class="card">
+        <h3>Mis datos</h3>
+        <p class="muted" style="margin-bottom:10px">Tus datos se guardan solo en este dispositivo. Haz un respaldo para pasarlos a otro.</p>
+        <div class="btn-row" style="margin-bottom:8px">
+          <button class="btn sec" data-action="exportar">⬇️ Exportar respaldo</button>
+          <button class="btn sec" data-action="importar">⬆️ Importar</button>
+        </div>
+        <input type="file" id="s-file" accept=".json,application/json" style="display:none">
+        <div class="btn-row">
+          <button class="btn sec" data-action="ejemplo">Cargar casa de ejemplo</button>
+          <button class="btn danger" data-action="borrar">Borrar todo</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Acerca de</h3>
+        <p class="muted">ClimaWatt v<span id="s-version"></span> · Proyecto final de Sustentabilidad.<br>
+        Fuentes: límites y escalones de tarifa de CFE (Tarifa 1F y DAC); factor de emisión del Sistema Eléctrico Nacional 2024 de SEMARNAT (0.444 kg CO₂e/kWh). Los ahorros del simulador son estimaciones.</p>
+      </div>
+    </section>
+  </main>
+
+  <nav>
+    <button class="on" data-go="inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11 12 4l9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Inicio</button>
+    <button data-go="aparatos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>Aparatos</button>
+    <button data-go="recibo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>Recibo</button>
+    <button data-go="ahorro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Ahorro</button>
+    <button data-go="huella"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-10 10z"/><path d="M2 21c0-3 1.9-5.4 5.1-6"/></svg>Huella</button>
+  </nav>
+</div>
+
+<!-- Ventana de confirmación -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h3 id="m-title"></h3>
+    <p id="m-text"></p>
+    <div class="btn-row">
+      <button class="btn sec" id="m-no">Cancelar</button>
+      <button class="btn" id="m-yes">Aceptar</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="js/datos.js"></script>
+<script src="js/calculos.js"></script>
+<script src="js/almacenamiento.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

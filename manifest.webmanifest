@@ -1,0 +1,15 @@
+{
+  "name": "ClimaWatt",
+  "short_name": "ClimaWatt",
+  "description": "Mide y reduce el consumo eléctrico del aire acondicionado en tu casa.",
+  "lang": "es-MX",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#eef3f1",
+  "theme_color": "#137a52",
+  "icons": [
+    { "src": "img/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
