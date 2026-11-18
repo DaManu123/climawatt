@@ -2,6 +2,8 @@
 
 Aplicación web para medir, entender y reducir el consumo eléctrico del aire acondicionado en los hogares de Hermosillo. Proyecto final de Sustentabilidad.
 
+**Abrir la app:** [https://damanu123.github.io/climawatt/](https://damanu123.github.io/climawatt/)
+
 > Versión de prueba (no para producción). Los datos se guardan solo en el navegador de cada usuario.
 
 ## Funciones
@@ -112,7 +114,7 @@ Igual que Netlify, si se sube sin cuenta hay que "reclamar" el sitio para que no
 
 ## Instalar en el celular
 
-Ya publicada (con `https://`):
+Abre [https://damanu123.github.io/climawatt/](https://damanu123.github.io/climawatt/) en el celular:
 
 - **Android (Chrome):** abre el link → menú ⋮ → **Agregar a pantalla principal** / **Instalar app**.
 - **iPhone (Safari):** abre el link → botón compartir → **Agregar a inicio**.
