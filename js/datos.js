@@ -5,7 +5,7 @@
    ========================================================= */
 window.CW = window.CW || {};
 
-CW.VERSION = '1.1.0';
+CW.VERSION = '1.2.0';
 
 // Configuración por defecto (el usuario la puede cambiar en Ajustes)
 CW.CONFIG_DEFAULT = {

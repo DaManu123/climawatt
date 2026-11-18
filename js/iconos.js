@@ -37,7 +37,8 @@ CW.ICONOS = {
   basura:    '<path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/>',
   mas:       '<path d="M12 5v14M5 12h14"/>',
   casa:      '<path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/>',
-  grafica:   '<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 6-6"/>'
+  grafica:   '<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 6-6"/>',
+  camara:    '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3.5"/>'
 };
 
 // Devuelve el SVG de un icono como texto HTML

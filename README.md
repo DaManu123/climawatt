@@ -10,7 +10,7 @@ Aplicación web para medir, entender y reducir el consumo eléctrico del aire ac
 |---|---|
 | **Inicio** | Recibo estimado, consumo en kWh, CO₂ del mes, promedio anual estimado contra el límite DAC, promedio real de tus recibos y los aparatos que más gastan |
 | **Aparatos** | Agregar, editar y eliminar aparatos con tipos precargados (minisplit, inverter, refri, etc.). Los equipos de clima tienen horas distintas en verano y el resto del año. Vista previa del consumo y de cuánto sube el recibo |
-| **Recibo** | Recibo estimado con los escalones de la Tarifa 1F (temporada automática según el mes, o verano / resto del año a elección) + historial de recibos reales de CFE con gráfica y promedio de los últimos 12 meses contra el límite DAC |
+| **Recibo** | Recibo estimado con los escalones de la Tarifa 1F (temporada automática según el mes, o verano / resto del año a elección) + historial de recibos reales de CFE con gráfica y promedio de los últimos 12 meses contra el límite DAC. Los recibos se pueden capturar a mano o leer automáticamente desde el PDF o una foto del recibo |
 | **Ahorro** | Simulador (temperatura, horas, inverter, modo espera) que muestra el ahorro o el gasto extra, y plan de ahorro con casillas para marcar avances |
 | **Huella** | kg de CO₂ del mes y estimado del año, equivalencias (árboles, km en auto), CO₂ por aparato y CO₂ evitado con los cambios |
 | **Ajustes** | Editar precios y escalones de la tarifa, factor de CO₂ y límite DAC; exportar/importar respaldo; cargar ejemplo o borrar todo |
@@ -31,6 +31,7 @@ climawatt/
     ├── iconos.js           ← iconos SVG de la interfaz
     ├── calculos.js         ← fórmulas (kWh, recibo, CO₂, ahorro)
     ├── almacenamiento.js   ← guardar/cargar en localStorage, respaldos y validación de datos
+    ├── lector.js           ← lectura de recibos de CFE en PDF o imagen
     └── app.js              ← interfaz y eventos
 ```
 
@@ -115,6 +116,15 @@ Ya publicada (con `https://`):
 
 - **Android (Chrome):** abre el link → menú ⋮ → **Agregar a pantalla principal** / **Instalar app**.
 - **iPhone (Safari):** abre el link → botón compartir → **Agregar a inicio**.
+
+## Leer el recibo de CFE automáticamente
+
+En **Recibo → Mis recibos reales** se puede subir el recibo para que la app llene el periodo, los kWh y el total:
+
+- **PDF** (el que manda CFE por correo o se descarga de su página): se lee el texto con [pdf.js](https://mozilla.github.io/pdf.js/). Es la opción más confiable.
+- **Foto o imagen**: se reconoce el texto con [Tesseract.js](https://tesseract.projectnaptha.com/) (OCR). Depende de la calidad de la foto, así que **puede que no se llenen todos los campos** y haya que completarlos a mano. Los PDF escaneados (sin texto) también se leen así.
+
+Los datos leídos solo llenan el formulario: el usuario los revisa y presiona *Guardar recibo*. El recibo se procesa en el dispositivo y no se sube a ningún servidor; las librerías se descargan solo la primera vez que se usan (se necesita internet).
 
 ## Respaldo de datos
 

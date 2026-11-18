@@ -1,9 +1,9 @@
 /* ClimaWatt - service worker
    Guarda los archivos de la app en caché para que funcione sin internet. */
-const CACHE = 'climawatt-v2';
+const CACHE = 'climawatt-v3';
 const ARCHIVOS = [
   './', './index.html', './css/styles.css',
-  './js/datos.js', './js/iconos.js', './js/calculos.js', './js/almacenamiento.js', './js/app.js',
+  './js/datos.js', './js/iconos.js', './js/calculos.js', './js/almacenamiento.js', './js/lector.js', './js/app.js',
   './manifest.webmanifest', './img/icon-192.png', './img/icon-512.png'
 ];
 

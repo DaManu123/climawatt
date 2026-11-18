@@ -351,11 +351,79 @@
     if (ex) { ex.kwh = r.kwh; ex.monto = r.monto; toast('Recibo actualizado'); }
     else { S.recibos.push(r); toast('Recibo guardado'); }
     $('rr-kwh').value = ''; $('rr-monto').value = '';
+    limpiarMarcas(); estadoLector('');
     persistir(); render();
   }
   async function borrarRecibo(id) {
     if (!await confirmar('¿Quitar recibo?', 'Se eliminará este recibo del historial.', 'Quitar', true)) return;
     S.recibos = S.recibos.filter(r => r.id !== id); persistir(); render(); toast('Recibo eliminado');
+  }
+
+  // ---------- Lector de recibos (PDF o imagen) ----------
+  let leyendo = false;
+  const CAMPOS_RECIBO = ['rr-mes', 'rr-anio', 'rr-kwh', 'rr-monto'];
+  function estadoLector(html) { $('rr-scan-estado').innerHTML = html; }
+  function progresoLector(txt) { estadoLector(`<div class="scan-prog"><span class="spin"></span>${esc(txt)}</div>`); }
+  function limpiarMarcas() { CAMPOS_RECIBO.forEach(id => $(id).classList.remove('auto', 'falta')); }
+  function bloquearLector(si) { leyendo = si; $('rr-btn-pdf').disabled = si; $('rr-btn-img').disabled = si; }
+
+  async function leerRecibo(archivo, tipo) {
+    if (leyendo || !archivo) return;
+    bloquearLector(true); limpiarMarcas();
+    let porImagen = tipo === 'imagen';
+    const avance = p => progresoLector(`Reconociendo el texto de la imagen… ${Math.round(p * 100)}%`);
+    try {
+      let texto = '';
+      if (tipo === 'pdf') {
+        progresoLector('Leyendo el PDF…');
+        texto = await CW.lector.textoDePDF(archivo);
+        if (texto.replace(/\s/g, '').length < 40) {
+          // PDF escaneado (solo imagen): se usa reconocimiento de texto
+          porImagen = true;
+          progresoLector('El PDF es una imagen escaneada, preparando el reconocimiento de texto…');
+          texto = await CW.lector.ocr(await CW.lector.pdfAImagen(archivo), avance);
+        }
+      } else {
+        progresoLector('Descargando el lector de imágenes (solo la primera vez)…');
+        texto = await CW.lector.ocr(archivo, avance);
+      }
+      aplicarLectura(CW.lector.analizar(texto), porImagen);
+    } catch (err) {
+      estadoLector(alerta('bad', 'alerta', `<b>No se pudo leer el recibo</b>${esc(err && err.message ? err.message : 'Error desconocido')}. Puedes capturar los datos a mano.`));
+    } finally {
+      bloquearLector(false);
+    }
+  }
+
+  function aplicarLectura(d, porImagen) {
+    const llenos = [], faltan = [];
+    const marcar = (ids, ok) => ids.forEach(id => $(id).classList.add(ok ? 'auto' : 'falta'));
+    if (d.mes && d.anio) {
+      if (![...$('rr-anio').options].some(o => +o.value === d.anio)) {
+        $('rr-anio').insertAdjacentHTML('beforeend', `<option>${d.anio}</option>`);
+      }
+      $('rr-mes').value = d.mes; $('rr-anio').value = d.anio;
+      marcar(['rr-mes', 'rr-anio'], true); llenos.push('periodo');
+    } else { marcar(['rr-mes', 'rr-anio'], false); faltan.push('el periodo'); }
+    if (d.kwh) { $('rr-kwh').value = d.kwh; marcar(['rr-kwh'], true); llenos.push('kWh'); }
+    else { $('rr-kwh').value = ''; marcar(['rr-kwh'], false); faltan.push('los kWh'); }
+    if (d.monto != null) { $('rr-monto').value = d.monto; marcar(['rr-monto'], true); llenos.push('total pagado'); }
+    else { $('rr-monto').value = ''; marcar(['rr-monto'], false); faltan.push('el total pagado'); }
+
+    const extra = [];
+    if (!d.esCFE && llenos.length) extra.push('No parece un recibo de CFE; revisa bien los datos.');
+    if (d.tarifa && d.tarifa !== '1F') extra.push(`Tu recibo dice tarifa ${esc(d.tarifa)}; la app calcula con la Tarifa 1F de Hermosillo.`);
+    if (porImagen && faltan.length) extra.push('Al leer imágenes pueden quedar campos sin llenar: complétalos a mano.');
+    const nota = extra.length ? '<br>' + extra.join(' ') : '';
+
+    if (!llenos.length) {
+      estadoLector(alerta('bad', 'alerta', `<b>No se encontraron datos en el recibo</b>Captura el periodo, los kWh y el total a mano.${nota}`));
+    } else if (faltan.length) {
+      estadoLector(alerta('warn', 'alerta', `<b>Se llenó: ${llenos.join(', ')}</b>Falta llenar a mano ${faltan.join(' y ')} (en amarillo). Revisa todo y presiona <strong>Guardar recibo</strong>.${nota}`));
+    } else {
+      estadoLector(alerta('ok', 'ok', `<b>Se llenaron todos los campos</b>Revisa que el periodo, los kWh y el total coincidan con tu recibo y presiona <strong>Guardar recibo</strong>.${nota}`));
+    }
+    $('rr-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
   // ---------- Vista 4: Ahorro ----------
@@ -526,6 +594,12 @@
   ['a-w', 'a-h', 'a-hi', 'a-d'].forEach(id => $(id).addEventListener('input', previewForm));
   $('a-cancel').addEventListener('click', resetForm);
   $('rr-form').addEventListener('submit', guardarRecibo);
+  $('rr-btn-pdf').addEventListener('click', () => $('rr-file-pdf').click());
+  $('rr-btn-img').addEventListener('click', () => $('rr-file-img').click());
+  $('rr-file-pdf').addEventListener('change', e => { leerRecibo(e.target.files[0], 'pdf'); e.target.value = ''; });
+  $('rr-file-img').addEventListener('change', e => { leerRecibo(e.target.files[0], 'imagen'); e.target.value = ''; });
+  CAMPOS_RECIBO.forEach(id => $(id).addEventListener('input', () => $(id).classList.remove('auto', 'falta')));
+  CAMPOS_RECIBO.forEach(id => $(id).addEventListener('change', () => $(id).classList.remove('auto', 'falta')));
   ['h-temp', 'h-hours'].forEach(id => $(id).addEventListener('input', leerSim));
   ['h-inv', 'h-vamp'].forEach(id => $(id).addEventListener('change', leerSim));
   $('s-hogar').addEventListener('change', e => { S.hogar = e.target.value.trim().slice(0, 30); persistir(); toast('Nombre actualizado'); });

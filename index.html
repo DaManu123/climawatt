@@ -123,8 +123,21 @@
           <h3>Consumo por bimestre</h3>
           <div id="rr-chart"></div>
         </div>
-        <div class="card">
+        <div class="card" id="rr-card">
           <h3>Registrar un recibo</h3>
+          <div class="scan">
+            <div class="scan-tit">Llénalo automático con tu recibo de CFE</div>
+            <div class="btn-row">
+              <button class="btn sec" type="button" id="rr-btn-pdf"><span data-i="documento"></span>Subir PDF</button>
+              <button class="btn sec" type="button" id="rr-btn-img"><span data-i="camara"></span>Foto o imagen</button>
+            </div>
+            <input type="file" id="rr-file-pdf" accept="application/pdf,.pdf" hidden>
+            <input type="file" id="rr-file-img" accept="image/*" hidden>
+            <p class="scan-aviso"><span data-i="alerta"></span>Si eliges una foto o imagen, es posible que no se llenen todos los campos; en ese caso tendrás que completarlos a mano.</p>
+            <div id="rr-scan-estado" aria-live="polite"></div>
+            <p class="foot" style="text-align:left;margin:6px 0 0">El recibo se lee en tu dispositivo y no se sube a ningún servidor. La primera vez se necesita internet para descargar el lector.</p>
+          </div>
+          <div class="scan-o"><span>o captúralo a mano</span></div>
           <form id="rr-form" autocomplete="off">
             <div class="grid2" style="margin-bottom:10px">
               <div><label for="rr-mes">Bimestre que termina en</label><select id="rr-mes"></select></div>
@@ -264,6 +277,7 @@
 <script src="js/iconos.js"></script>
 <script src="js/calculos.js"></script>
 <script src="js/almacenamiento.js"></script>
+<script src="js/lector.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

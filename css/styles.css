@@ -95,6 +95,22 @@ input:focus,select:focus{outline:2px solid var(--green-l);border-color:var(--gre
 .btn-row{display:flex;gap:8px}
 .btn-row .btn{flex:1}
 
+/* Lector de recibos */
+.scan{background:var(--bg);border-radius:12px;padding:12px;margin-bottom:12px}
+.scan-tit{font-size:13px;font-weight:700;margin-bottom:8px}
+.scan-aviso{display:flex;gap:7px;align-items:flex-start;font-size:12px;color:#7a5000;background:var(--amber-l);border-radius:10px;padding:8px 10px;margin-top:8px}
+.scan-aviso .ic{width:15px;height:15px;margin-top:1px}
+#rr-scan-estado:not(:empty){margin-top:8px}
+#rr-scan-estado .alert{margin-bottom:0}
+.scan-prog{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+.spin{width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--green);border-radius:50%;animation:gira .8s linear infinite;flex-shrink:0}
+@keyframes gira{to{transform:rotate(360deg)}}
+.scan-o{display:flex;align-items:center;gap:10px;font-size:11.5px;color:var(--muted);margin:2px 0 12px}
+.scan-o:before,.scan-o:after{content:"";flex:1;height:1px;background:var(--line)}
+input.auto,select.auto{border-color:var(--green);background:var(--green-l)}
+input.falta,select.falta{border-color:var(--amber);background:var(--amber-l)}
+.btn:disabled{opacity:.55;cursor:wait}
+
 /* Tablas */
 table{width:100%;border-collapse:collapse;font-size:13px}
 td,th{padding:8px 4px;text-align:left;border-bottom:1px solid var(--line)}
